@@ -19,7 +19,7 @@ const initialValues: FormValues = {
 
 export default function NoteForm({ onClose }: NoteFormProps) {
   return (
-    <Formik initialValues={initialValues}>
+    <Formik initialValues={initialValues} onSubmit={() => {}}>
       <Form className={css.form}>
         <div className={css.formGroup}>
           <label htmlFor="title">Title</label>
@@ -30,6 +30,7 @@ export default function NoteForm({ onClose }: NoteFormProps) {
         <div className={css.formGroup}>
           <label htmlFor="content">Content</label>
           <Field
+            as="textarea"
             id="content"
             name="content"
             rows={8}
@@ -40,7 +41,7 @@ export default function NoteForm({ onClose }: NoteFormProps) {
 
         <div className={css.formGroup}>
           <label htmlFor="tag">Tag</label>
-          <Field id="tag" name="tag" className={css.select}>
+          <Field as="select" id="tag" name="tag" className={css.select}>
             <option value="Todo">Todo</option>
             <option value="Work">Work</option>
             <option value="Personal">Personal</option>
