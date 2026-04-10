@@ -1,5 +1,8 @@
 import css from "./NoteForm.module.css";
 import { Formik, Form, Field, type FormikHelpers, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "../../services/noteServices";
 
 interface NoteFormProps {
   onClose: () => void;
@@ -8,18 +11,53 @@ interface NoteFormProps {
 interface FormValues {
   title: string;
   content: string;
-  tag: "" | "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
+  tag: "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
 }
 
 const initialValues: FormValues = {
   title: "",
   content: "",
-  tag: "",
+  tag: "Todo",
 };
 
+const OrderFormSchema = Yup.object().shape({
+  title: Yup.string()
+    .min(3, "Title too short")
+    .max(50, "Title too long")
+    .required("This is a required field!"),
+  content: Yup.string().max(500, "Content too long"),
+  tag: Yup.string()
+    .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
+    .required(),
+});
+
 export default function NoteForm({ onClose }: NoteFormProps) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: createNote,
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      onClose();
+    },
+  });
+
+  const handleSubmit = (
+    values: FormValues,
+    FormikHelpers: FormikHelpers<FormValues>,
+  ) => {
+    // console.log("Submit", values);
+    mutation.mutateAsync(values, {
+      onSuccess: () => FormikHelpers.resetForm(),
+    });
+  };
+
   return (
-    <Formik initialValues={initialValues} onSubmit={() => {}}>
+    <Formik
+      initialValues={initialValues}
+      validationSchema={OrderFormSchema}
+      onSubmit={handleSubmit}
+    >
       <Form className={css.form}>
         <div className={css.formGroup}>
           <label htmlFor="title">Title</label>
@@ -36,7 +74,7 @@ export default function NoteForm({ onClose }: NoteFormProps) {
             rows={8}
             className={css.textarea}
           />
-          <ErrorMessage name="content" component="span" className={css.eroor} />
+          <ErrorMessage name="content" component="span" className={css.error} />
         </div>
 
         <div className={css.formGroup}>
@@ -48,15 +86,19 @@ export default function NoteForm({ onClose }: NoteFormProps) {
             <option value="Meeting">Meeting</option>
             <option value="Shopping">Shopping</option>
           </Field>
-          <ErrorMessage name="tag" className={css.error} />
+          <ErrorMessage name="tag" component="span" className={css.error} />
         </div>
 
         <div className={css.actions}>
           <button type="button" className={css.cancelButton} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className={css.submitButton} disabled={false}>
-            Create note
+          <button
+            type="submit"
+            className={css.submitButton}
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? "Creating..." : "Create note"}
           </button>
         </div>
       </Form>

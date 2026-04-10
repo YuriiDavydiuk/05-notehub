@@ -1,10 +1,7 @@
 // Standart & types
 import { useState } from "react";
-import type { note } from "../../types/note";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import ReactPaginateModule from "react-paginate";
-import { type ReactPaginateProps } from "react-paginate";
-import { type ComponentType } from "react";
+import { useDebouncedCallback } from "use-debounce";
 
 // HTTP & Services
 import { getNotes } from "../../services/noteServices";
@@ -21,39 +18,28 @@ import SearchBox from "../SearchBox/SearchBox";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 
-type ModuleWithDefault<T> = { default: T };
-
-const ReactPaginate = (
-  ReactPaginateModule as unknown as ModuleWithDefault<
-    ComponentType<ReactPaginateProps>
-  >
-).default;
-
 export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = useDebouncedCallback(setSearchQuery, 300);
 
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ["notes", currentPage],
-    queryFn: () => getNotes(currentPage),
+    queryKey: ["notes", currentPage, searchQuery],
+    queryFn: () => getNotes(currentPage, searchQuery),
     placeholderData: keepPreviousData,
   });
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        {/* Компонент SearchBox */}
+        {<SearchBox text={searchQuery} onSearch={handleSearch} />}
         {isSuccess && data.totalPages > 1 && (
-          <ReactPaginate
-            pageCount={data.totalPages}
-            pageRangeDisplayed={3}
-            marginPagesDisplayed={3}
-            onPageChange={({ selected }) => setCurrentPage(selected + 1)}
-            forcePage={currentPage - 1}
-            containerClassName={css.pagination}
-            activeClassName={css.active}
-            nextLabel="->"
-            previousLabel="<-"
+          <Pagination
+            totalPages={data.totalPages}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
           />
         )}
         {
