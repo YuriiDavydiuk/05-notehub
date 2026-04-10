@@ -4,7 +4,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useDebouncedCallback } from "use-debounce";
 
 // HTTP & Services
-import { getNotes } from "../../services/noteServices";
+import { getNotes } from "../../services/noteService";
 
 // Style
 import css from "./App.module.css";
