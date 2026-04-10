@@ -34,7 +34,7 @@ export default function App() {
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        {<SearchBox text={searchQuery} onSearch={handleSearch} />}
+        {<SearchBox onSearch={handleSearch} />}
         {isSuccess && data.totalPages > 1 && (
           <Pagination
             totalPages={data.totalPages}
