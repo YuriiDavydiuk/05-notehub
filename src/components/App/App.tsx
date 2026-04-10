@@ -23,7 +23,10 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const handleSearch = useDebouncedCallback(setSearchQuery, 300);
+  const handleSearch = useDebouncedCallback((query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  }, 300);
 
   const { data, isLoading, isError, isSuccess } = useQuery({
     queryKey: ["notes", currentPage, searchQuery],
